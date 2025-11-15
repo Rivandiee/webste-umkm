@@ -3,9 +3,8 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { verifyAdminToken } from '@/lib/auth'; 
 
-// GET: Daftar semua kategori (PUBLIC/UNPROTECTED)
+// 1. GET: Daftar semua kategori (PUBLIC/UNPROTECTED)
 export async function GET(request: Request) {
-  // GET tidak memiliki pemeriksaan token, sehingga publik.
   try {
     const categories = await prisma.category.findMany({
       select: {
@@ -24,7 +23,7 @@ export async function GET(request: Request) {
   }
 }
 
-// POST: Tambah kategori baru (PROTECTED)
+// 2. POST: Tambah kategori baru (PROTECTED)
 export async function POST(request: Request) {
   const authResult = verifyAdminToken(request);
   if (!authResult.success) {
@@ -32,10 +31,16 @@ export async function POST(request: Request) {
   }
 
   try {
-    // ... (Logika POST)
     const body = await request.json();
     const { name } = body;
-    // ...
+
+    if (!name || typeof name !== 'string') {
+      return NextResponse.json(
+        { message: 'Nama kategori wajib diisi.' },
+        { status: 400 }
+      );
+    }
+
     const newCategory = await prisma.category.create({
       data: { name },
     });
@@ -56,7 +61,7 @@ export async function POST(request: Request) {
   }
 }
 
-// DELETE: Hapus kategori berdasarkan ID (PROTECTED)
+// 3. DELETE: Hapus kategori berdasarkan ID (PROTECTED)
 export async function DELETE(request: Request) {
   const authResult = verifyAdminToken(request);
   if (!authResult.success) {
@@ -64,17 +69,29 @@ export async function DELETE(request: Request) {
   }
   
   try {
-    // ... (Logika DELETE)
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
-    // ...
+
+    if (!id) {
+      return NextResponse.json(
+        { message: 'ID kategori wajib diisi.' },
+        { status: 400 }
+      );
+    }
+
     await prisma.category.delete({
       where: { id },
     });
 
     return NextResponse.json({ message: 'Kategori berhasil dihapus.' }, { status: 200 });
   } catch (error: any) {
-    // ... (Error handling)
+    console.error('API Error (DELETE /api/category):', error);
+    if (error.code === 'P2003') {
+      return NextResponse.json(
+        { message: 'Gagal menghapus: Kategori ini masih digunakan oleh Menu.' },
+        { status: 409 }
+      );
+    }
     return NextResponse.json(
       { message: 'Gagal menghapus kategori.' },
       { status: 500 }

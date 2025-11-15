@@ -14,25 +14,40 @@ export default function AddCategory() {
     setIsLoading(true);
     setError(null);
 
-    // --- VALIDASI TAMBAHAN ---
     if (!name.trim()) {
         setError("Nama kategori tidak boleh kosong.");
         setIsLoading(false);
         return;
     }
-    // --- AKHIR VALIDASI TAMBAHAN ---
+    
+    // --- FIX KRITIS: AMBIL DAN CEK TOKEN ---
+    const token = localStorage.getItem('admin_token');
+    if (!token) {
+        setError("Sesi login habis. Silakan login ulang.");
+        setIsLoading(false);
+        // Mungkin ingin mengarahkan ke halaman login
+        // router.push("/admin_login"); 
+        return;
+    }
+    // --- AKHIR FIX KRITIS ---
 
     try {
       const response = await fetch("/api/category", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          // FIX KRITIS: KIRIM TOKEN DI HEADER OTORISASI
+          "Authorization": `Bearer ${token}` 
         },
         body: JSON.stringify({ name }),
       });
 
+      if (response.status === 401) {
+          // Jika backend menolak token
+          throw new Error("Akses Ditolak: Token tidak valid.");
+      }
+
       if (!response.ok) {
-        // Pastikan error body di-parse untuk pesan yang lebih spesifik
         const errorData = await response.json().catch(() => ({ message: "Gagal menambahkan kategori." }));
         throw new Error(errorData.message || "Gagal menambahkan kategori. Terjadi kesalahan pada server.");
       }

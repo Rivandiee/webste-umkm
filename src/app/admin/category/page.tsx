@@ -4,6 +4,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Plus, Pencil, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation"; // [FIXED] Tambahkan useRouter
 
 interface Category {
   id: string; 
@@ -11,22 +12,22 @@ interface Category {
 }
 
 export default function CategoryPage() {
+  const router = useRouter(); // [FIXED] Inisialisasi router
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // ... (Logika fetchCategories dan useEffect tetap sama)
   const fetchCategories = async () => {
-    setIsLoading(true);
-    setError(null);
     try {
-      const response = await fetch("/api/category"); // GET /api/category
-      
-      if (!response.ok) {
-        throw new Error("Gagal mengambil data kategori.");
-      }
-      
-      const data = await response.json();
-      setCategories(data);
+        const response = await fetch("/api/category"); 
+        
+        if (!response.ok) {
+          throw new Error("Gagal mengambil data kategori.");
+        }
+        
+        const data = await response.json();
+        setCategories(data);
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -41,13 +42,26 @@ export default function CategoryPage() {
   const deleteCategory = async (id: string) => {
     if (!confirm("Yakin ingin menghapus kategori ini?")) return;
 
+    const token = localStorage.getItem('admin_token');
+    if (!token) {
+        alert("Sesi login Anda habis. Silakan refresh dan login ulang.");
+        router.push("/admin_login"); // Redirect jika tidak ada token
+        return;
+    }
+
     try {
       const response = await fetch(`/api/category?id=${id}`, {
-        method: "DELETE", // DELETE /api/category?id=...
+        method: "DELETE",
+        headers: { "Authorization": `Bearer ${token}` }
       });
 
+      if (response.status === 401) {
+          throw new Error("Akses Ditolak: Sesi login habis.");
+      }
+
       if (!response.ok) {
-        throw new Error("Gagal menghapus kategori. Mungkin sedang digunakan oleh Menu.");
+        const errorData = await response.json().catch(() => ({ message: "Gagal menghapus kategori." }));
+        throw new Error(errorData.message || "Gagal menghapus kategori. Mungkin sedang digunakan oleh Menu.");
       }
 
       setCategories(categories.filter((cat) => cat.id !== id));
@@ -76,42 +90,51 @@ export default function CategoryPage() {
       
       {!isLoading && !error && (
         <div className="bg-white rounded-xl shadow">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Nama Kategori
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Aksi
-                </th>
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="bg-gray-100 text-left">
+                <th className="p-3">Nama Kategori</th>
+                <th className="p-3 text-center w-32">Aksi</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {categories.map((category) => (
-                <tr key={category.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {category.name}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {/* --- FIX KRITIS: Tombol Edit Baru --- */}
-                    <Link 
-                      // Mengarahkan ke halaman edit dengan ID yang sesuai
-                      href={`/admin/category/${category.id}/edit`} 
-                      className="text-blue-600 hover:text-blue-900 mr-4 font-semibold"
-                    >
-                      Edit
-                    </Link>
-                    {/* --- Akhir FIX KRITIS --- */}
+
+            <tbody>
+              {categories.map((cat) => (
+                <tr key={cat.id} className="border-b">
+                  <td className="p-3">{cat.name}</td>
+
+                  <td className="p-3 flex items-center justify-center gap-3">
+                    {/* FIX KRITIS: Tombol Edit sekarang adalah button dengan router.push */}
                     <button
-                      onClick={() => handleDelete(category.id)}
-                      className="text-red-600 hover:text-red-900 font-semibold"
+                      onClick={() => router.push(`/admin/category/${cat.id}/edit`)}
+                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
+                      title="Edit Kategori"
                     >
-                      Hapus
+                      <Pencil size={18} />
+                    </button>
+
+                    {/* Delete button */}
+                    <button
+                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                      title="Hapus Kategori"
+                      onClick={() => deleteCategory(cat.id)}
+                    >
+                      <Trash2 size={18} />
                     </button>
                   </td>
                 </tr>
               ))}
+
+              {categories.length === 0 && (
+                <tr>
+                  <td
+                    className="p-4 text-gray-500 text-center"
+                    colSpan={2}
+                  >
+                    Belum ada kategori
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
