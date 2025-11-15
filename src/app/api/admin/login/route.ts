@@ -1,15 +1,19 @@
-// File: src/app/api/admin/login/route.ts (DIRELOKASI & DIRENAME dari router.ts)
-import { PrismaClient } from "@prisma/client";
+// File: src/app/api/admin/login/route.ts
 import { NextResponse } from "next/server";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import prisma from "@/lib/prisma"; // <-- DIUBAH: Impor prisma singleton
 
 // Menggunakan PrismaClient lokal (non-singleton) untuk file ini, atau ganti dengan import prisma dari @/lib/prisma
-const prisma = new PrismaClient(); // Asumsi: Anda sudah menginstal prisma dan bcrypt
+// const prisma = new PrismaClient(); // <-- DIHAPUS: Baris ini tidak dipakai lagi
 
 export async function POST(req: Request) {
   try {
     const { username, password } = await req.json();
+
+    if (!username || !password) { // <-- DITAMBAH: Validasi input
+      return NextResponse.json({ error: "Username dan password wajib diisi" }, { status: 400 });
+    }
 
     const admin = await prisma.admin.findUnique({
       where: { username }
