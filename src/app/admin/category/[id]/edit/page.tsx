@@ -1,33 +1,104 @@
-// File: src/app/admin/category/page.tsx
+// File: src/app/admin/category/[id]/edit/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
-import { Plus, Pencil, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation"; // [FIXED] Diperlukan untuk navigasi non-Link
+import { useRouter, useParams } from "next/navigation";
 
 interface Category {
-  id: string; 
+  id: string;
   name: string;
 }
 
-export default function CategoryPage() {
-  const router = useRouter(); // [FIXED] Inisialisasi router
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export default function EditCategoryPage() {
+  const router = useRouter();
+  const params = useParams();
+  const id = params.id as string;
 
-  const fetchCategories = async () => {
+  const [categoryName, setCategoryName] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isFetching, setIsFetching] = useState(true);
+
+  // Ambil data kategori saat halaman dimuat (GET Protected)
+  useEffect(() => {
+    if (!id) return;
+
+    const fetchCategory = async () => {
+      try {
+        // Ambil token untuk GET request
+        const token = localStorage.getItem('admin_token');
+        if (!token) {
+            router.replace("/admin_login"); 
+            return;
+        }
+        
+        // Memanggil API GET /api/category/[id] dengan token
+        const res = await fetch(`/api/category/${id}`, {
+             headers: { "Authorization": `Bearer ${token}` }
+        });
+
+        if (res.status === 401) {
+             throw new Error("Sesi Anda habis. Silakan login ulang.");
+        }
+        if (!res.ok) {
+            throw new Error("Gagal memuat data kategori.");
+        }
+
+        const data: Category = await res.json();
+        setCategoryName(data.name);
+      } catch (err: any) {
+        setError(err.message || "Terjadi kesalahan saat memuat data.");
+      } finally {
+        setIsFetching(false);
+      }
+    };
+    fetchCategory();
+  }, [id, router]);
+
+  // Handle submit form untuk update (PATCH Protected)
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+
+    const name = categoryName.trim();
+    if (!name) {
+        setError("Nama kategori wajib diisi.");
+        setIsLoading(false);
+        return;
+    }
+    
+    // Ambil token untuk PATCH request
+    const token = localStorage.getItem('admin_token');
+    if (!token) {
+        setError("Sesi Anda habis. Silakan refresh dan login ulang.");
+        setIsLoading(false);
+        return;
+    }
+
     try {
-      // GET API category sudah di-unprotect, jadi ini akan berhasil jika DB terhubung
-      const response = await fetch("/api/category"); 
+      // Menggunakan API PATCH /api/category/[id] dengan token
+      const response = await fetch(`/api/category/${id}`, {
+        method: "PATCH", 
+        headers: { 
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ name }),
+      });
       
-      if (!response.ok) {
-        throw new Error("Gagal mengambil data kategori.");
+      if (response.status === 401) {
+          throw new Error("Sesi login Anda habis atau tidak valid.");
       }
       
-      const data = await response.json();
-      setCategories(data);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: "Gagal memperbarui kategori. Server Error." }));
+        throw new Error(errorData.message || "Gagal memperbarui kategori.");
+      }
+
+      alert("Kategori berhasil diperbarui!");
+      router.push("/admin/category"); 
+      
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -35,115 +106,46 @@ export default function CategoryPage() {
     }
   };
 
-  useEffect(() => {
-    fetchCategories();
-  }, []);
-
-  const deleteCategory = async (id: string) => {
-    if (!confirm("Yakin ingin menghapus kategori ini?")) return;
-
-    const token = localStorage.getItem('admin_token');
-    if (!token) {
-        alert("Sesi login Anda habis. Silakan refresh dan login ulang.");
-        router.push("/admin_login"); 
-        return;
-    }
-
-    try {
-      const response = await fetch(`/api/category?id=${id}`, {
-        method: "DELETE",
-        headers: { "Authorization": `Bearer ${token}` }
-      });
-
-      if (response.status === 401) {
-          throw new Error("Akses Ditolak: Sesi login habis.");
-      }
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: "Gagal menghapus kategori." }));
-        throw new Error(errorData.message || "Gagal menghapus kategori. Mungkin sedang digunakan oleh Menu.");
-      }
-
-      setCategories(categories.filter((cat) => cat.id !== id));
-      alert("Kategori berhasil dihapus!");
-    } catch (e: any) {
-      alert(e.message);
-    }
-  };
-  
-  // Fungsi baru untuk navigasi Edit
-  const handleEditClick = (id: string) => {
-      router.push(`/admin/category/${id}/edit`);
-  };
+  if (isFetching) {
+    return <div className="p-6 max-w-xl mx-auto text-center">Memuat data...</div>;
+  }
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Kelola Kategori</h1>
+    <div className="p-6 max-w-xl mx-auto">
+      <h1 className="text-2xl font-bold mb-4">Edit Kategori</h1>
 
-        <Link
-          href="/admin/category/add"
-          className="bg-green-600 text-white flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-green-700"
+      <form onSubmit={handleSubmit} className="space-y-4 bg-white p-6 rounded-lg shadow-md">
+        {error && (
+            <p className="text-red-600 bg-red-100 p-3 rounded-lg border border-red-200">
+                Error: {error}
+            </p>
+        )}
+        
+        <input
+          type="text"
+          placeholder="Nama Kategori"
+          className="w-full border p-3 rounded"
+          value={categoryName}
+          onChange={(e) => setCategoryName(e.target.value)}
+          disabled={isLoading}
+        />
+
+        <button
+          type="submit"
+          className="bg-blue-600 text-white w-full py-3 rounded-lg disabled:bg-blue-400 transition"
+          disabled={isLoading}
         >
-          <Plus size={18} />
-          Tambah Kategori
-        </Link>
-      </div>
-      
-      {isLoading && <p className="text-gray-600">Memuat data...</p>}
-      {error && <p className="p-3 text-red-700 bg-red-100 border border-red-300 rounded">Error: {error}</p>}
-      
-      {!isLoading && !error && (
-        <div className="bg-white rounded-xl shadow">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="bg-gray-100 text-left">
-                <th className="p-3">Nama Kategori</th>
-                <th className="p-3 text-center w-32">Aksi</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {categories.map((cat) => (
-                <tr key={cat.id} className="border-b">
-                  <td className="p-3">{cat.name}</td>
-
-                  <td className="p-3 flex items-center justify-center gap-3">
-                    {/* Menggunakan Button dengan onClick untuk navigasi */}
-                    <button
-                      onClick={() => handleEditClick(cat.id)}
-                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
-                      title="Edit Kategori"
-                    >
-                      <Pencil size={18} />
-                    </button>
-
-                    {/* Delete button */}
-                    <button
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
-                      title="Hapus Kategori"
-                      onClick={() => deleteCategory(cat.id)}
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-
-              {categories.length === 0 && (
-                <tr>
-                  <td
-                    className="p-4 text-gray-500 text-center"
-                    colSpan={2}
-                  >
-                    Belum ada kategori
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      )}
+          {isLoading ? "Memperbarui..." : "Perbarui Kategori"}
+        </button>
+        
+        <button
+          type="button"
+          onClick={() => router.push("/admin/category")}
+          className="bg-gray-500 text-white w-full py-3 rounded-lg mt-2 transition hover:bg-gray-600"
+        >
+          Batal
+        </button>
+      </form>
     </div>
   );
 }

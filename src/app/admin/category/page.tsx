@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Plus, Pencil, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation"; // [FIXED] Tambahkan useRouter
+import { useRouter } from "next/navigation"; 
 
 interface Category {
   id: string; 
@@ -12,22 +12,21 @@ interface Category {
 }
 
 export default function CategoryPage() {
-  const router = useRouter(); // [FIXED] Inisialisasi router
+  const router = useRouter(); 
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // ... (Logika fetchCategories dan useEffect tetap sama)
   const fetchCategories = async () => {
     try {
-        const response = await fetch("/api/category"); 
-        
-        if (!response.ok) {
-          throw new Error("Gagal mengambil data kategori.");
-        }
-        
-        const data = await response.json();
-        setCategories(data);
+      const response = await fetch("/api/category"); 
+      
+      if (!response.ok) {
+        throw new Error("Gagal mengambil data kategori.");
+      }
+      
+      const data = await response.json();
+      setCategories(data);
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -45,7 +44,7 @@ export default function CategoryPage() {
     const token = localStorage.getItem('admin_token');
     if (!token) {
         alert("Sesi login Anda habis. Silakan refresh dan login ulang.");
-        router.push("/admin_login"); // Redirect jika tidak ada token
+        router.push("/admin_login"); 
         return;
     }
 
@@ -69,6 +68,12 @@ export default function CategoryPage() {
     } catch (e: any) {
       alert(e.message);
     }
+  };
+  
+  // Fungsi untuk navigasi Edit
+  const handleEditClick = (id: string) => {
+      // Menggunakan router.push untuk navigasi
+      router.push(`/admin/category/${id}/edit`);
   };
 
   return (
@@ -104,9 +109,9 @@ export default function CategoryPage() {
                   <td className="p-3">{cat.name}</td>
 
                   <td className="p-3 flex items-center justify-center gap-3">
-                    {/* FIX KRITIS: Tombol Edit sekarang adalah button dengan router.push */}
+                    {/* Menggunakan Button dengan onClick untuk navigasi Edit yang responsif */}
                     <button
-                      onClick={() => router.push(`/admin/category/${cat.id}/edit`)}
+                      onClick={() => handleEditClick(cat.id)}
                       className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
                       title="Edit Kategori"
                     >

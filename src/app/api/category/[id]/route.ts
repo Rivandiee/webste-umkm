@@ -1,4 +1,4 @@
-// File: src/app/api/category/[id]/route.ts (NEW FILE)
+// File: src/app/api/category/[id]/route.ts
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { verifyAdminToken } from '@/lib/auth';
