@@ -24,6 +24,7 @@ export default function AddMenuPage() {
 
   // Ambil daftar kategori untuk dropdown
   useEffect(() => {
+    // GET API category tidak diproteksi
     const fetchCategories = async () => {
       try {
         const res = await fetch("/api/category");
@@ -31,6 +32,7 @@ export default function AddMenuPage() {
         setCategories(data);
       } catch (err) {
         console.error("Gagal memuat kategori:", err);
+        setError("Gagal memuat kategori. Pastikan database berjalan.");
       }
     };
     fetchCategories();
@@ -56,6 +58,14 @@ export default function AddMenuPage() {
         return;
     }
     // --- AKHIR VALIDASI KUAT ---
+    
+    // AMBIL TOKEN DARI LOCAL STORAGE (Wajib untuk POST)
+    const token = localStorage.getItem('admin_token');
+    if (!token) {
+        setError("Sesi Anda habis. Silakan refresh dan login ulang.");
+        setIsLoading(false);
+        return;
+    }
 
     const payload = {
       ...form,
@@ -65,13 +75,19 @@ export default function AddMenuPage() {
     try {
       const response = await fetch("/api/menu", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}` // <--- FIX KRITIS: MENGIRIM TOKEN ADMIN
+        },
         body: JSON.stringify(payload),
       });
       
+      if (response.status === 401) {
+          throw new Error("Sesi login Anda habis atau tidak valid. Silakan login ulang.");
+      }
+      
       if (!response.ok) {
-        // Menangkap pesan error spesifik dari backend (jika ada)
-        const errorData = await response.json().catch(() => ({ message: "Gagal menambahkan menu." }));
+        const errorData = await response.json().catch(() => ({ message: "Gagal menambahkan menu. Terjadi kesalahan pada server." }));
         throw new Error(errorData.message || "Gagal menambahkan menu. Terjadi kesalahan pada server.");
       }
 
