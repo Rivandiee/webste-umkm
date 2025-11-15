@@ -8,6 +8,10 @@ export default function CartPage() {
     { id: 2, name: "Es Teh Manis", price: 5000, qty: 2 },
   ]);
 
+  const [customerName, setCustomerName] = useState("");
+  const [tableNumber, setTableNumber] = useState("");
+  const [orderNote, setOrderNote] = useState(""); // ⬅ Catatan umum
+
   const increaseQty = (id) => {
     setCart((prev) =>
       prev.map((item) =>
@@ -32,10 +36,56 @@ export default function CartPage() {
     <div className="min-h-screen bg-gradient-to-b from-slate-100 to-blue-50 py-8 px-6 flex justify-center">
       <div className="w-full max-w-lg space-y-6">
 
-        {/* Title */}
         <h1 className="text-3xl font-extrabold text-slate-800 text-center">
           Keranjang
         </h1>
+
+        {/* Nama, Meja, Catatan Umum */}
+        <div className="bg-white p-5 rounded-2xl shadow-md border border-slate-100 space-y-4">
+          
+          {/* Nama */}
+          <div>
+            <label className="block font-semibold text-slate-700 mb-1">
+              Nama Pengunjung
+            </label>
+            <input
+              type="text"
+              value={customerName}
+              onChange={(e) => setCustomerName(e.target.value)}
+              placeholder="Contoh: Budi, Siti, Tamu 3..."
+              className="w-full p-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
+            />
+          </div>
+
+          {/* Nomor Meja */}
+          <div>
+            <label className="block font-semibold text-slate-700 mb-1">
+              Nomor Meja
+            </label>
+            <input
+              type="number"
+              value={tableNumber}
+              onChange={(e) => setTableNumber(e.target.value)}
+              placeholder="Contoh: 1, 12, 20..."
+              className="w-full p-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
+            />
+          </div>
+
+          {/* Catatan Umum */}
+          <div>
+            <label className="block font-semibold text-slate-700 mb-1">
+              Catatan Pesanan
+            </label>
+            <input
+              type="text"
+              value={orderNote}
+              onChange={(e) => setOrderNote(e.target.value)}
+              placeholder="Contoh: Jangan pedas, saus dipisah..."
+              className="w-full p-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
+            />
+          </div>
+
+        </div>
 
         {/* Cart Items */}
         <div className="space-y-4">
@@ -52,7 +102,7 @@ export default function CartPage() {
                   </p>
                 </div>
 
-                {/* Quantity Buttons */}
+                {/* Quantity */}
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => decreaseQty(item.id)}
@@ -90,13 +140,20 @@ export default function CartPage() {
               Rp {totalPrice.toLocaleString()}
             </span>
           </div>
+
+          {(customerName || tableNumber || orderNote) && (
+            <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-xl text-sm text-slate-700">
+              <p><strong>Nama:</strong> {customerName || "-"}</p>
+              <p><strong>Meja:</strong> {tableNumber || "-"}</p>
+              <p><strong>Catatan:</strong> {orderNote || "-"}</p>
+            </div>
+          )}
         </div>
 
-        {/* Checkout Button */}
         <button className="w-full py-4 rounded-2xl bg-blue-600 text-white font-semibold text-lg shadow-lg hover:bg-blue-700 active:scale-95 transition-all">
           Lanjutkan Checkout
         </button>
-
+        
       </div>
     </div>
   );

@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import Navbar from "../../components/Navbar";
-import MenuCard from "../../components/MenuCard";
-import SectionTitle from "../../components/SectionTitle";
-import Footer from "../../components/Footer";
+import Navbar from "../../../components/Navbar";
+import MenuCard from "../../../components/MenuCard";
+import SectionTitle from "../../../components/SectionTitle";
+import Footer from "../../../components/Footer";
 
 
 const menu = [

@@ -4,7 +4,7 @@ export default function Navbar() {
       <h1 className="text-xl font-bold text-gray-800">Rumah Makan</h1>
 
       <a
-        href="/cart"
+        href="/user/cart"
         className="text-gray-600 hover:text-gray-900 font-semibold"
       >
         🛒 Keranjang
