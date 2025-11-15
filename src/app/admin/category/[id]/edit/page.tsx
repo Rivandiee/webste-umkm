@@ -5,14 +5,14 @@ import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 
 interface Category {
-  id: number; // <-- DIUBAH
+  id: number;
   name: string;
 }
 
 export default function EditCategoryPage() {
   const router = useRouter();
   const params = useParams();
-  const id = params.id as string; // 'id' dari URL tetap string, ini BENAR
+  const id = params.id as string; 
 
   const [categoryName, setCategoryName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -25,15 +25,12 @@ export default function EditCategoryPage() {
 
     const fetchCategory = async () => {
       try {
-        // Ambil token untuk GET request
         const token = localStorage.getItem('admin_token');
         if (!token) {
             router.replace("/admin_login"); 
             return;
         }
         
-        // Memanggil API GET /api/category/[id] dengan token
-        // API ini sudah kita perbaiki untuk menangani string 'id'
         const res = await fetch(`/api/category/${id}`, {
              headers: { "Authorization": `Bearer ${token}` }
         });
@@ -42,10 +39,11 @@ export default function EditCategoryPage() {
              throw new Error("Sesi Anda habis. Silakan login ulang.");
         }
         if (!res.ok) {
-            throw new Error("Gagal memuat data kategori.");
+            const errData = await res.json().catch(() => null);
+            throw new Error(errData?.message || "Gagal memuat data kategori.");
         }
 
-        const data: Category = await res.json(); // Data yang diterima id-nya number
+        const data: Category = await res.json();
         setCategoryName(data.name);
       } catch (err: any) {
         setError(err.message || "Terjadi kesalahan saat memuat data.");
@@ -69,7 +67,6 @@ export default function EditCategoryPage() {
         return;
     }
     
-    // Ambil token untuk PATCH request
     const token = localStorage.getItem('admin_token');
     if (!token) {
         setError("Sesi Anda habis. Silakan refresh dan login ulang.");
@@ -78,8 +75,6 @@ export default function EditCategoryPage() {
     }
 
     try {
-      // Menggunakan API PATCH /api/category/[id] dengan token
-      // API ini sudah kita perbaiki untuk menangani string 'id'
       const response = await fetch(`/api/category/${id}`, {
         method: "PATCH", 
         headers: { 
@@ -123,14 +118,20 @@ export default function EditCategoryPage() {
             </p>
         )}
         
-        <input
-          type="text"
-          placeholder="Nama Kategori"
-          className="w-full border p-3 rounded"
-          value={categoryName}
-          onChange={(e) => setCategoryName(e.target.value)}
-          disabled={isLoading}
-        />
+        <div>
+          <label htmlFor="categoryName" className="block text-sm font-medium text-gray-700 mb-1">
+            Nama Kategori
+          </label>
+          <input
+            id="categoryName"
+            type="text"
+            placeholder="Nama Kategori"
+            className="w-full border p-3 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
+            value={categoryName}
+            onChange={(e) => setCategoryName(e.target.value)}
+            disabled={isLoading}
+          />
+        </div>
 
         <button
           type="submit"

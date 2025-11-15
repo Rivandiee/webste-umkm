@@ -73,22 +73,24 @@ export async function DELETE(request: Request) {
   
   try {
     const { searchParams } = new URL(request.url);
-    const idString = searchParams.get('id'); // <-- DIUBAH nama variabel
+    const idString = searchParams.get('id');
 
-    if (!idString) { // <-- DIUBAH
+    if (!idString) {
       return NextResponse.json(
         { message: 'ID kategori wajib diisi.' },
         { status: 400 }
       );
     }
 
-    const id = Number(idString); // <-- DITAMBAH konversi
-    if (isNaN(id)) { // <-- DITAMBAH validasi
+    // --- PERBAIKAN VALIDASI ---
+    const idNum = Number(idString); // "1" -> 1, "1.1" -> 1.1
+    if (isNaN(idNum) || !Number.isInteger(idNum)) { // Cek float/NaN
         return NextResponse.json({ message: 'ID Kategori tidak valid.' }, { status: 400 });
     }
+    // --- AKHIR PERBAIKAN ---
 
     await prisma.category.delete({
-      where: { id: id }, // <-- DIUBAH ke number
+      where: { id: idNum }, // Gunakan idNum
     });
 
     return NextResponse.json({ message: 'Kategori berhasil dihapus.' }, { status: 200 });

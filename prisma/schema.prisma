@@ -1,65 +1,63 @@
-// File: prisma/schema.prisma (Telah Diperbarui)
+generator client {
+  provider = "prisma-client-js"
+}
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
-}
-
 model Category {
-  id    Int    @id @default(autoincrement()) // Diubah dari String/uuid
   name  String @unique
+  id    Int    @id @default(autoincrement())
   menus Menu[]
 }
 
 model Table {
-  id     Int     @id @default(autoincrement()) // Diubah dari String/uuid
   number Int
   qrCode String  @unique
+  id     Int     @id @default(autoincrement())
   orders Order[]
 }
 
 model Menu {
-  id         Int         @id @default(autoincrement()) // Diubah dari String/uuid
   name       String
   price      Int
   image      String?
+  id         Int         @id @default(autoincrement())
+  categoryId Int
   category   Category    @relation(fields: [categoryId], references: [id])
-  categoryId Int // Diubah dari String
   items      OrderItem[]
 }
 
 model Order {
-  id            Int           @id @default(autoincrement()) // Diubah dari String/uuid
-  table         Table         @relation(fields: [tableId], references: [id])
-  tableId       Int // Diubah dari String
   status        OrderStatus   @default(PENDING)
   paymentMethod PaymentMethod @default(CASH)
   paymentStatus PaymentStatus @default(UNPAID)
   totalPrice    Int
   createdAt     DateTime      @default(now())
+  id            Int           @id @default(autoincrement())
+  tableId       Int
+  table         Table         @relation(fields: [tableId], references: [id])
   items         OrderItem[]
 }
 
 model OrderItem {
-  id      Int     @id @default(autoincrement()) // Diubah dari String/uuid
-  order   Order   @relation(fields: [orderId], references: [id])
-  orderId Int // Diubah dari String
-  menu    Menu    @relation(fields: [menuId], references: [id])
-  menuId  Int // Diubah dari String
   qty     Int
   note    String?
   price   Int
+  id      Int     @id @default(autoincrement())
+  orderId Int
+  menuId  Int
+  menu    Menu    @relation(fields: [menuId], references: [id])
+  order   Order   @relation(fields: [orderId], references: [id])
 }
 
 model Admin {
-  id       Int    @id @default(autoincrement()) // Diubah dari String/uuid
   username String @unique
   password String
   name     String
+  id       Int    @id @default(autoincrement())
 }
 
 enum OrderStatus {

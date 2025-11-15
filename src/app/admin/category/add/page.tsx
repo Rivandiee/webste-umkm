@@ -20,30 +20,24 @@ export default function AddCategory() {
         return;
     }
     
-    // --- FIX KRITIS: AMBIL DAN CEK TOKEN ---
     const token = localStorage.getItem('admin_token');
     if (!token) {
         setError("Sesi login habis. Silakan login ulang.");
         setIsLoading(false);
-        // Mungkin ingin mengarahkan ke halaman login
-        // router.push("/admin_login"); 
         return;
     }
-    // --- AKHIR FIX KRITIS ---
 
     try {
       const response = await fetch("/api/category", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          // FIX KRITIS: KIRIM TOKEN DI HEADER OTORISASI
           "Authorization": `Bearer ${token}` 
         },
         body: JSON.stringify({ name }),
       });
 
       if (response.status === 401) {
-          // Jika backend menolak token
           throw new Error("Akses Ditolak: Token tidak valid.");
       }
 
@@ -63,32 +57,48 @@ export default function AddCategory() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-6 shadow rounded">
-      <h1 className="text-2xl mb-4">Tambah Kategori</h1>
+    <div className="p-6 max-w-xl mx-auto">
+      <h1 className="text-2xl font-bold mb-4">Tambah Kategori</h1>
 
-      {error && (
-        <div className="p-3 mb-4 text-red-700 bg-red-100 border border-red-300 rounded">
-          Error: {error}
+      <form onSubmit={handleSubmit} className="space-y-4 bg-white p-6 rounded-lg shadow-md">
+        {error && (
+            <p className="text-red-600 bg-red-100 p-3 rounded-lg border border-red-200">
+                Error: {error}
+            </p>
+        )}
+        
+        <div>
+          <label htmlFor="categoryName" className="block text-sm font-medium text-gray-700 mb-1">
+            Nama Kategori
+          </label>
+          <input
+            id="categoryName"
+            type="text"
+            placeholder="Nama Kategori"
+            className="w-full border p-3 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+            disabled={isLoading}
+          />
         </div>
-      )}
 
-      <input
-        type="text"
-        className="border p-2 w-full mb-4"
-        placeholder="Nama kategori..."
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        required
-        disabled={isLoading}
-      />
-
-      <button 
-        type="submit"
-        className="bg-blue-600 text-white px-4 py-2 rounded disabled:bg-blue-400 transition"
-        disabled={isLoading}
-      >
-        {isLoading ? "Menyimpan..." : "Simpan"}
-      </button>
-    </form>
+        <button 
+          type="submit"
+          className="bg-blue-600 text-white w-full py-3 rounded-lg disabled:bg-blue-400 transition"
+          disabled={isLoading}
+        >
+          {isLoading ? "Menyimpan..." : "Simpan Kategori"}
+        </button>
+        
+        <button
+          type="button"
+          onClick={() => router.push("/admin/category")}
+          className="bg-gray-500 text-white w-full py-3 rounded-lg mt-2 transition hover:bg-gray-600"
+        >
+          Batal
+        </button>
+      </form>
+    </div>
   );
 }

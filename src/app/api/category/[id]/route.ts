@@ -3,25 +3,26 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { verifyAdminToken } from '@/lib/auth';
 
-interface Context {
-  params: { id: string };
-}
-
 // 1. GET: Ambil detail kategori by ID (Protected)
-export async function GET(request: Request, context: Context) {
+// PERBAIKAN: Mengubah cara 'context' diterima menjadi '{ params }'
+export async function GET(request: Request, { params }: { params: { id: string } }) {
     const authResult = verifyAdminToken(request);
     if (!authResult.success) {
         return NextResponse.json({ message: 'Akses Ditolak: Diperlukan otentikasi admin.' }, { status: 401 });
     }
     
     try {
-        const id = parseInt(context.params.id, 10);
-        if (isNaN(id)) {
+        // PERBAIKAN: Validasi ID yang lebih ketat
+        const idNum = Number(params.id); // "1" -> 1, "1.1" -> 1.1, "abc" -> NaN
+        
+        // Cek apakah NaN ATAU bukan integer
+        if (isNaN(idNum) || !Number.isInteger(idNum)) {
             return NextResponse.json({ message: 'ID Kategori tidak valid.' }, { status: 400 });
         }
+        // --- AKHIR PERBAIKAN ---
         
         const category = await prisma.category.findUnique({
-            where: { id: id },
+            where: { id: idNum }, // Gunakan idNum yang sudah valid
             select: { id: true, name: true },
         });
 
@@ -39,17 +40,21 @@ export async function GET(request: Request, context: Context) {
 }
 
 // 2. PATCH: Update kategori by ID (Protected)
-export async function PATCH(request: Request, context: Context) {
+// PERBAIKAN: Mengubah cara 'context' diterima menjadi '{ params }'
+export async function PATCH(request: Request, { params }: { params: { id: string } }) {
     const authResult = verifyAdminToken(request);
     if (!authResult.success) {
         return NextResponse.json({ message: 'Akses Ditolak: Diperlukan otentikasi admin.' }, { status: 401 });
     }
 
     try {
-        const id = parseInt(context.params.id, 10);
-        if (isNaN(id)) {
+        // PERBAIKAN: Validasi ID yang lebih ketat
+        const idNum = Number(params.id); 
+        
+        if (isNaN(idNum) || !Number.isInteger(idNum)) {
             return NextResponse.json({ message: 'ID Kategori tidak valid.' }, { status: 400 });
         }
+        // --- AKHIR PERBAIKAN ---
 
         const body = await request.json();
         const { name } = body;
@@ -62,7 +67,7 @@ export async function PATCH(request: Request, context: Context) {
         }
 
         const updatedCategory = await prisma.category.update({
-            where: { id: id },
+            where: { id: idNum }, // Gunakan idNum yang sudah valid
             data: { name },
         });
 

@@ -7,7 +7,7 @@ import { Plus, Pencil, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation"; 
 
 interface Category {
-  id: number; // <-- DIUBAH
+  id: number;
   name: string;
 }
 
@@ -38,7 +38,7 @@ export default function CategoryPage() {
     fetchCategories();
   }, []);
 
-  const deleteCategory = async (id: number) => { // <-- DIUBAH
+  const deleteCategory = async (id: number) => {
     if (!confirm("Yakin ingin menghapus kategori ini?")) return;
 
     const token = localStorage.getItem('admin_token');
@@ -49,7 +49,7 @@ export default function CategoryPage() {
     }
 
     try {
-      const response = await fetch(`/api/category?id=${id}`, { // id sudah number
+      const response = await fetch(`/api/category?id=${id}`, {
         method: "DELETE",
         headers: { "Authorization": `Bearer ${token}` }
       });
@@ -70,10 +70,8 @@ export default function CategoryPage() {
     }
   };
   
-  // Fungsi untuk navigasi Edit
-  const handleEditClick = (id: number) => { // <-- DIUBAH
-      // Menggunakan router.push untuk navigasi
-      router.push(`/admin/category/${id}/edit`); // id sudah number
+  const handleEditClick = (id: number) => {
+      router.push(`/admin/category/${id}/edit`);
   };
 
   return (
@@ -83,7 +81,7 @@ export default function CategoryPage() {
 
         <Link
           href="/admin/category/add"
-          className="bg-green-600 text-white flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-green-700"
+          className="bg-green-600 text-white flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
         >
           <Plus size={18} />
           Tambah Kategori
@@ -91,41 +89,45 @@ export default function CategoryPage() {
       </div>
       
       {isLoading && <p className="text-gray-600">Memuat data...</p>}
-      {error && <p className="p-3 text-red-700 bg-red-100 border border-red-300 rounded">Error: {error}</p>}
+      {error && <p className="p-3 text-red-700 bg-red-100 border border-red-300 rounded-lg">Error: {error}</p>}
       
       {!isLoading && !error && (
-        <div className="bg-white rounded-xl shadow">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="bg-gray-100 text-left">
-                <th className="p-3">Nama Kategori</th>
-                <th className="p-3 text-center w-32">Aksi</th>
+        <div className="bg-white rounded-xl shadow overflow-hidden">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="p-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  Nama Kategori
+                </th>
+                <th className="p-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider w-36">
+                  Aksi
+                </th>
               </tr>
             </thead>
 
-            <tbody>
+            <tbody className="divide-y divide-gray-200">
               {categories.map((cat) => (
-                <tr key={cat.id} className="border-b">
-                  <td className="p-3">{cat.name}</td>
+                <tr key={cat.id} className="hover:bg-gray-50">
+                  <td className="p-4 text-sm text-gray-800">{cat.name}</td>
 
-                  <td className="p-3 flex items-center justify-center gap-3">
-                    {/* Menggunakan Button dengan onClick untuk navigasi Edit yang responsif */}
-                    <button
-                      onClick={() => handleEditClick(cat.id)} // cat.id sudah number
-                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
-                      title="Edit Kategori"
-                    >
-                      <Pencil size={18} />
-                    </button>
+                  <td className="p-4">
+                    <div className="flex items-center justify-center gap-3">
+                      <button
+                        onClick={() => handleEditClick(cat.id)}
+                        className="p-2 text-blue-600 hover:bg-blue-100 rounded-full transition-colors"
+                        title="Edit Kategori"
+                      >
+                        <Pencil size={18} />
+                      </button>
 
-                    {/* Delete button */}
-                    <button
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
-                      title="Hapus Kategori"
-                      onClick={() => deleteCategory(cat.id)} // cat.id sudah number
-                    >
-                      <Trash2 size={18} />
-                    </button>
+                      <button
+                        className="p-2 text-red-600 hover:bg-red-100 rounded-full transition-colors"
+                        title="Hapus Kategori"
+                        onClick={() => deleteCategory(cat.id)}
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -133,10 +135,10 @@ export default function CategoryPage() {
               {categories.length === 0 && (
                 <tr>
                   <td
-                    className="p-4 text-gray-500 text-center"
+                    className="p-6 text-gray-500 text-center italic"
                     colSpan={2}
                   >
-                    Belum ada kategori
+                    Belum ada kategori yang ditambahkan.
                   </td>
                 </tr>
               )}
