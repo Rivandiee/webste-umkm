@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma';
 import { verifyAdminToken } from '@/lib/auth'; 
 
 // 1. GET: Daftar semua kategori (PUBLIC/UNPROTECTED)
+// Pastikan tidak ada 'verifyAdminToken' di dalam fungsi GET ini
 export async function GET(request: Request) {
   try {
     const categories = await prisma.category.findMany({

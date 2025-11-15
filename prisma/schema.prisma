@@ -1,4 +1,4 @@
-// File: rivandiee/webste-umkm/webste-umkm-ac2ee62ddab7edd70fdcf9cdc1b17191f3ac7645/prisma/schema.prisma (UPDATED)
+// File: prisma/schema.prisma (Telah Diperbarui)
 
 datasource db {
   provider = "postgresql"
@@ -9,54 +9,57 @@ generator client {
   provider = "prisma-client-js"
 }
 
-// ==========================================================
-// ⚠️ MODEL BARU UNTUK MENGELOLA KATEGORI SECARA TERPISAH
-// ==========================================================
 model Category {
-  id    String @id @default(uuid())
+  id    Int    @id @default(autoincrement()) // Diubah dari String/uuid
   name  String @unique
-  menus Menu[] // Relasi one-to-many ke model Menu
+  menus Menu[]
 }
 
 model Table {
-  id        String   @id @default(uuid())
-  number    Int
-  qrCode    String   @unique
-  orders    Order[]
+  id     Int     @id @default(autoincrement()) // Diubah dari String/uuid
+  number Int
+  qrCode String  @unique
+  orders Order[]
 }
 
 model Menu {
-  id          String    @id @default(uuid())
-  name        String
-  price       Int
-  image       String?
-  // BIDANG LAMA 'category String?' DIHAPUS DAN DIGANTI DENGAN RELASI KUAT:
-  category    Category @relation(fields: [categoryId], references: [id])
-  categoryId  String
-  items       OrderItem[]
+  id         Int         @id @default(autoincrement()) // Diubah dari String/uuid
+  name       String
+  price      Int
+  image      String?
+  category   Category    @relation(fields: [categoryId], references: [id])
+  categoryId Int // Diubah dari String
+  items      OrderItem[]
 }
 
 model Order {
-  id            String           @id @default(uuid())
-  table         Table            @relation(fields: [tableId], references: [id])
-  tableId       String
-  status        OrderStatus      @default(PENDING)
-  paymentMethod PaymentMethod    @default(CASH)
-  paymentStatus PaymentStatus    @default(UNPAID)
+  id            Int           @id @default(autoincrement()) // Diubah dari String/uuid
+  table         Table         @relation(fields: [tableId], references: [id])
+  tableId       Int // Diubah dari String
+  status        OrderStatus   @default(PENDING)
+  paymentMethod PaymentMethod @default(CASH)
+  paymentStatus PaymentStatus @default(UNPAID)
   totalPrice    Int
-  createdAt     DateTime         @default(now())
+  createdAt     DateTime      @default(now())
   items         OrderItem[]
 }
 
 model OrderItem {
-  id       String  @id @default(uuid())
-  order    Order   @relation(fields: [orderId], references: [id])
-  orderId  String
-  menu     Menu    @relation(fields: [menuId], references: [id])
-  menuId   String
-  qty      Int
-  note     String?
-  price    Int
+  id      Int     @id @default(autoincrement()) // Diubah dari String/uuid
+  order   Order   @relation(fields: [orderId], references: [id])
+  orderId Int // Diubah dari String
+  menu    Menu    @relation(fields: [menuId], references: [id])
+  menuId  Int // Diubah dari String
+  qty     Int
+  note    String?
+  price   Int
+}
+
+model Admin {
+  id       Int    @id @default(autoincrement()) // Diubah dari String/uuid
+  username String @unique
+  password String
+  name     String
 }
 
 enum OrderStatus {
@@ -73,11 +76,4 @@ enum PaymentMethod {
 enum PaymentStatus {
   UNPAID
   PAID
-}
-
-model Admin {
-  id       String @id @default(uuid())
-  username String @unique
-  password String // Hashed password
-  name     String
 }
