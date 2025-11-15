@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma';
 import { verifyAdminToken } from '@/lib/auth'; 
 
 // GET: Daftar semua menu (PUBLIC/UNPROTECTED)
+// ... (Fungsi GET tidak berubah)
 export async function GET() { 
     try {
         const menuItems = await prisma.menu.findMany({
@@ -50,8 +51,8 @@ export async function POST(request: Request) {
         const newMenu = await prisma.menu.create({
             data: {
                 name,
-                price: Number(price), // Konversi harga ke angka
-                categoryId,
+                price: Number(price), 
+                categoryId: Number(categoryId), // <-- DIUBAH ke Number
                 image: image || null,
             },
         });
@@ -75,17 +76,22 @@ export async function DELETE(request: Request) {
 
     try {
         const { searchParams } = new URL(request.url);
-        const id = searchParams.get('id');
+        const idString = searchParams.get('id'); // <-- DIUBAH nama variabel
 
-        if (!id) {
+        if (!idString) { // <-- DIUBAH
             return NextResponse.json(
                 { message: 'ID menu wajib diisi.' },
                 { status: 400 }
             );
         }
 
+        const id = Number(idString); // <-- DITAMBAH konversi
+        if (isNaN(id)) { // <-- DITAMBAH validasi
+            return NextResponse.json({ message: 'ID Menu tidak valid.' }, { status: 400 });
+        }
+
         await prisma.menu.delete({
-            where: { id },
+            where: { id: id }, // <-- DIUBAH ke number
         });
 
         return NextResponse.json({ message: 'Menu berhasil dihapus.' }, { status: 200 });

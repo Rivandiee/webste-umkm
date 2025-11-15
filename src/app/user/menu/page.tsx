@@ -9,35 +9,34 @@ import Footer from "../../../components/Footer";
 
 // Definisi interface
 interface MenuItem {
-  id: string;
+  id: number; // <-- DIUBAH
   name: string;
   price: number;
   image: string | null;
-  categoryId: string;
+  categoryId: number; // <-- DIUBAH
   category: {
-    id: string;
+    id: number; // <-- DIUBAH
     name: string;
   };
 }
 
 interface Category {
-    id: string;
+    id: number; // <-- DIUBAH
     name: string;
 }
 
 interface CartItem {
-    id: string;
+    id: number; // <-- DIUBAH
     name: string;
     price: number;
     qty: number;
     note?: string; 
 }
-
-
+// ... (sisa file sama)
 export default function MenuPage() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
-  const [categories, setCategories] = useState<{ id: string; label: string; }[]>([]);
-  const [filter, setFilter] = useState("all");
+  const [categories, setCategories] = useState<{ id: number | string; label: string; }[]>([]); // <-- DIUBAH (id bisa string 'all' atau number)
+  const [filter, setFilter] = useState<number | string>("all"); // <-- DIUBAH
   const [search, setSearch] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   
@@ -90,8 +89,7 @@ export default function MenuPage() {
 
   // Filter kategori + pencarian
   const filteredMenu = menuItems.filter((item) => {
-    // Membandingkan dengan categoryId dari item, bukan field 'category'
-    const matchesCategory = filter === "all" || item.categoryId === filter; 
+    const matchesCategory = filter === "all" || item.categoryId === filter; // <-- Ini sudah benar
     const matchesSearch = item.name.toLowerCase().includes(search.toLowerCase());
     return matchesCategory && matchesSearch;
   });
@@ -100,8 +98,7 @@ export default function MenuPage() {
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
       <Navbar cartCount={cart.reduce((sum, item) => sum + item.qty, 0)} />
-
-      {/* HERO IMAGE (tetap statis) */}
+      {/* ... (sisa JSX sama) ... */}
       <div className="w-full h-48 md:h-64 overflow-hidden rounded-b-3xl shadow-md">
         <img
           src="/images/restaurant-banner.jpg"

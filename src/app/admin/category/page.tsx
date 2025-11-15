@@ -7,7 +7,7 @@ import { Plus, Pencil, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation"; 
 
 interface Category {
-  id: string; 
+  id: number; // <-- DIUBAH
   name: string;
 }
 
@@ -38,7 +38,7 @@ export default function CategoryPage() {
     fetchCategories();
   }, []);
 
-  const deleteCategory = async (id: string) => {
+  const deleteCategory = async (id: number) => { // <-- DIUBAH
     if (!confirm("Yakin ingin menghapus kategori ini?")) return;
 
     const token = localStorage.getItem('admin_token');
@@ -49,7 +49,7 @@ export default function CategoryPage() {
     }
 
     try {
-      const response = await fetch(`/api/category?id=${id}`, {
+      const response = await fetch(`/api/category?id=${id}`, { // id sudah number
         method: "DELETE",
         headers: { "Authorization": `Bearer ${token}` }
       });
@@ -71,9 +71,9 @@ export default function CategoryPage() {
   };
   
   // Fungsi untuk navigasi Edit
-  const handleEditClick = (id: string) => {
+  const handleEditClick = (id: number) => { // <-- DIUBAH
       // Menggunakan router.push untuk navigasi
-      router.push(`/admin/category/${id}/edit`);
+      router.push(`/admin/category/${id}/edit`); // id sudah number
   };
 
   return (
@@ -111,7 +111,7 @@ export default function CategoryPage() {
                   <td className="p-3 flex items-center justify-center gap-3">
                     {/* Menggunakan Button dengan onClick untuk navigasi Edit yang responsif */}
                     <button
-                      onClick={() => handleEditClick(cat.id)}
+                      onClick={() => handleEditClick(cat.id)} // cat.id sudah number
                       className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
                       title="Edit Kategori"
                     >
@@ -122,7 +122,7 @@ export default function CategoryPage() {
                     <button
                       className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
                       title="Hapus Kategori"
-                      onClick={() => deleteCategory(cat.id)}
+                      onClick={() => deleteCategory(cat.id)} // cat.id sudah number
                     >
                       <Trash2 size={18} />
                     </button>

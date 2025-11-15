@@ -5,14 +5,14 @@ import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 
 interface Category {
-  id: string;
+  id: number; // <-- DIUBAH
   name: string;
 }
 
 export default function EditCategoryPage() {
   const router = useRouter();
   const params = useParams();
-  const id = params.id as string;
+  const id = params.id as string; // 'id' dari URL tetap string, ini BENAR
 
   const [categoryName, setCategoryName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -33,6 +33,7 @@ export default function EditCategoryPage() {
         }
         
         // Memanggil API GET /api/category/[id] dengan token
+        // API ini sudah kita perbaiki untuk menangani string 'id'
         const res = await fetch(`/api/category/${id}`, {
              headers: { "Authorization": `Bearer ${token}` }
         });
@@ -44,7 +45,7 @@ export default function EditCategoryPage() {
             throw new Error("Gagal memuat data kategori.");
         }
 
-        const data: Category = await res.json();
+        const data: Category = await res.json(); // Data yang diterima id-nya number
         setCategoryName(data.name);
       } catch (err: any) {
         setError(err.message || "Terjadi kesalahan saat memuat data.");
@@ -78,6 +79,7 @@ export default function EditCategoryPage() {
 
     try {
       // Menggunakan API PATCH /api/category/[id] dengan token
+      // API ini sudah kita perbaiki untuk menangani string 'id'
       const response = await fetch(`/api/category/${id}`, {
         method: "PATCH", 
         headers: { 

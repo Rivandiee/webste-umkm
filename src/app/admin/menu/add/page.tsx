@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 interface Category {
-  id: string;
+  id: number; // <-- DIUBAH
   name: string;
 }
 
@@ -15,7 +15,7 @@ export default function AddMenuPage() {
   const [form, setForm] = useState({
     name: "",
     price: "",
-    categoryId: "",
+    categoryId: "", // <-- Tetap string, ini sudah benar
     image: "",
   });
   const [categories, setCategories] = useState<Category[]>([]);
@@ -69,7 +69,9 @@ export default function AddMenuPage() {
 
     const payload = {
       ...form,
-      price: numericPrice, // Menggunakan integer yang sudah divalidasi
+      price: numericPrice,
+      // categoryId (form.categoryId) dikirim sebagai string, 
+      // dan akan di-handle oleh API /api/menu (POST) menjadi number
     };
 
     try {
@@ -136,12 +138,13 @@ export default function AddMenuPage() {
 
         <select
           className="w-full border p-3 rounded"
-          value={form.categoryId}
+          value={form.categoryId} // value di sini adalah string
           onChange={(e) => setValue("categoryId", e.target.value)}
           disabled={isLoading}
         >
           <option value="">-- Pilih Kategori --</option>
           {categories.map(cat => (
+            // cat.id adalah number, tapi value di <option> akan otomatis jadi string
             <option key={cat.id} value={cat.id}>{cat.name}</option>
           ))}
         </select>

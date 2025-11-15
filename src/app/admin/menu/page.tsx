@@ -3,9 +3,10 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation"; // <-- DITAMBAH
 
 interface MenuItem {
-  id: string; // Ubah ke string untuk UUID
+  id: number; // <-- DIUBAH
   name: string;
   price: number;
   category: { name: string }; // Asumsikan object Category yang sudah direlasikan
@@ -14,6 +15,7 @@ interface MenuItem {
 export default function AdminMenuPage() {
   const [menu, setMenu] = useState<MenuItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter(); // <-- DITAMBAH
 
   const fetchMenu = async () => {
     try {
@@ -31,15 +33,33 @@ export default function AdminMenuPage() {
     fetchMenu();
   }, []);
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: number) => { // <-- DIUBAH
     if (confirm("Yakin ingin menghapus menu ini?")) {
+      
+      // --- PERBAIKAN PENTING: Ambil Token ---
+      const token = localStorage.getItem('admin_token');
+      if (!token) {
+          alert("Sesi login Anda habis. Silakan refresh dan login ulang.");
+          router.push("/admin_login"); 
+          return;
+      }
+      // --- Akhir Perbaikan ---
+
       try {
         const response = await fetch(`/api/menu?id=${id}`, {
           method: "DELETE", // DELETE /api/menu?id=...
+          headers: { // <-- DITAMBAH: Kirim token
+            "Authorization": `Bearer ${token}`
+          }
         });
 
+        if (response.status === 401) { // <-- DITAMBAH: Penanganan token
+            throw new Error("Akses Ditolak: Sesi login habis.");
+        }
+        
         if (!response.ok) {
-          throw new Error("Gagal menghapus menu.");
+          const errorData = await response.json().catch(() => ({ message: "Gagal menghapus menu." }));
+          throw new Error(errorData.message || "Gagal menghapus menu.");
         }
 
         // Perbarui state lokal dengan memfilter item yang dihapus
@@ -87,7 +107,7 @@ export default function AdminMenuPage() {
 
               <td className="p-3 border flex gap-2">
                 <Link
-                  href={`/admin/menu/edit/${item.id}`}
+                  href={`/admin/menu/edit/${item.id}`} // item.id sudah number
                   className="bg-blue-500 text-white px-3 py-1 rounded"
                 >
                   Edit
@@ -95,13 +115,20 @@ export default function AdminMenuPage() {
 
                 <button
                   className="bg-red-600 text-white px-3 py-1 rounded"
-                  onClick={() => handleDelete(item.id)}
+                  onClick={() => handleDelete(item.id)} // item.id sudah number
                 >
                   Hapus
                 </button>
               </td>
             </tr>
           ))}
+          {menu.length === 0 && !isLoading && (
+            <tr>
+              <td colSpan={4} className="p-4 text-center text-gray-500">
+                Belum ada menu yang ditambahkan.
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
     </div>

@@ -4,7 +4,7 @@ import prisma from '@/lib/prisma';
 import { verifyAdminToken } from '@/lib/auth'; 
 
 // 1. GET: Daftar semua kategori (PUBLIC/UNPROTECTED)
-// Pastikan tidak ada 'verifyAdminToken' di dalam fungsi GET ini
+// ... (Fungsi GET tidak berubah)
 export async function GET(request: Request) {
   try {
     const categories = await prisma.category.findMany({
@@ -25,6 +25,7 @@ export async function GET(request: Request) {
 }
 
 // 2. POST: Tambah kategori baru (PROTECTED)
+// ... (Fungsi POST tidak berubah)
 export async function POST(request: Request) {
   const authResult = verifyAdminToken(request);
   if (!authResult.success) {
@@ -62,6 +63,7 @@ export async function POST(request: Request) {
   }
 }
 
+
 // 3. DELETE: Hapus kategori berdasarkan ID (PROTECTED)
 export async function DELETE(request: Request) {
   const authResult = verifyAdminToken(request);
@@ -71,17 +73,22 @@ export async function DELETE(request: Request) {
   
   try {
     const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
+    const idString = searchParams.get('id'); // <-- DIUBAH nama variabel
 
-    if (!id) {
+    if (!idString) { // <-- DIUBAH
       return NextResponse.json(
         { message: 'ID kategori wajib diisi.' },
         { status: 400 }
       );
     }
 
+    const id = Number(idString); // <-- DITAMBAH konversi
+    if (isNaN(id)) { // <-- DITAMBAH validasi
+        return NextResponse.json({ message: 'ID Kategori tidak valid.' }, { status: 400 });
+    }
+
     await prisma.category.delete({
-      where: { id },
+      where: { id: id }, // <-- DIUBAH ke number
     });
 
     return NextResponse.json({ message: 'Kategori berhasil dihapus.' }, { status: 200 });

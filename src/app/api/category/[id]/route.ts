@@ -15,10 +15,13 @@ export async function GET(request: Request, context: Context) {
     }
     
     try {
-        const { id } = context.params;
+        const id = parseInt(context.params.id, 10);
+        if (isNaN(id)) {
+            return NextResponse.json({ message: 'ID Kategori tidak valid.' }, { status: 400 });
+        }
         
         const category = await prisma.category.findUnique({
-            where: { id },
+            where: { id: id },
             select: { id: true, name: true },
         });
 
@@ -43,7 +46,11 @@ export async function PATCH(request: Request, context: Context) {
     }
 
     try {
-        const { id } = context.params;
+        const id = parseInt(context.params.id, 10);
+        if (isNaN(id)) {
+            return NextResponse.json({ message: 'ID Kategori tidak valid.' }, { status: 400 });
+        }
+
         const body = await request.json();
         const { name } = body;
 
@@ -55,7 +62,7 @@ export async function PATCH(request: Request, context: Context) {
         }
 
         const updatedCategory = await prisma.category.update({
-            where: { id },
+            where: { id: id },
             data: { name },
         });
 

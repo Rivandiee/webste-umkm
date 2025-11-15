@@ -3,12 +3,16 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
 export async function GET(request: Request, { params }: { params: { orderId: string } }) {
-  const orderId = params.orderId;
+  const orderId = Number(params.orderId); // <-- DIUBAH ke Number
+  if (isNaN(orderId)) { // <-- DITAMBAH validasi
+      return NextResponse.json({ message: 'ID Pesanan tidak valid.' }, { status: 400 });
+  }
   
   try {
     const order = await prisma.order.findUnique({
-      where: { id: orderId },
+      where: { id: orderId }, // <-- DIUBAH ke number
       select: {
+// ... (sisa file sama)
         id: true,
         status: true,
         paymentStatus: true,

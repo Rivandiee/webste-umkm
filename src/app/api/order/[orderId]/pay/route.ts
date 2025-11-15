@@ -4,7 +4,10 @@ import prisma from '@/lib/prisma';
 import { PaymentMethod } from '@prisma/client';
 
 export async function POST(request: Request, { params }: { params: { orderId: string } }) {
-  const orderId = params.orderId;
+  const orderId = Number(params.orderId); // <-- DIUBAH ke Number
+  if (isNaN(orderId)) { // <-- DITAMBAH validasi
+      return NextResponse.json({ message: 'ID Pesanan tidak valid.' }, { status: 400 });
+  }
   
   try {
     const body = await request.json();
@@ -15,11 +18,9 @@ export async function POST(request: Request, { params }: { params: { orderId: st
     }
 
     const updatedOrder = await prisma.order.update({
-      where: { id: orderId },
+      where: { id: orderId }, // <-- DIUBAH ke number
       data: {
         paymentMethod: paymentMethod,
-        // Jika CASH, anggap sudah dibayar (atau akan segera dibayar)
-        // Jika NONCASH, status tetap UNPAID (menunggu scan QR)
         paymentStatus: paymentMethod === 'CASH' ? 'PAID' : 'UNPAID',
       },
     });

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 
 interface Order {
-  id: string; // Ubah ke string/UUID
+  id: number; // <-- DIUBAH
   name: string;
   total: number;
   status: 'PENDING' | 'PREPARING' | 'DONE'; // Menggunakan ENUM dari Prisma
@@ -49,11 +49,11 @@ export default function AdminOrderPage() {
         {orders.map((order) => (
           <Link
             key={order.id}
-            href={`/admin/order/${order.id}`}
+            href={`/admin/order/${order.id}`} // order.id sudah number
             className="bg-white shadow-md rounded-2xl p-5 border hover:shadow-xl transition block"
           >
             <div className="flex justify-between items-start mb-3">
-              <h2 className="font-bold text-lg">Pesanan #{order.id.substring(0, 8)}</h2>
+              <h2 className="font-bold text-lg">Pesanan #{order.id}</h2> {/* <-- DIUBAH (dihilangkan substring) */}
               <span
                 className={`text-xs text-white px-3 py-1 rounded-full ${statusColor[order.status]}`}
               >

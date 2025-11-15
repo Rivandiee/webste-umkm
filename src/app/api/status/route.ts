@@ -1,3 +1,4 @@
+// File: src/app/api/status/route.ts
 import { PrismaClient, OrderStatus, PaymentStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
 
@@ -7,8 +8,13 @@ export async function PATCH(req: Request) {
   try {
     const { orderId, status, paymentStatus } = await req.json();
 
+    const numericOrderId = Number(orderId); // <-- DITAMBAH konversi
+    if (isNaN(numericOrderId)) { // <-- DITAMBAH validasi
+        return NextResponse.json({ error: "Order ID tidak valid" }, { status: 400 });
+    }
+
     const update = await prisma.order.update({
-      where: { id: orderId },
+      where: { id: numericOrderId }, // <-- DIUBAH ke number
       data: {
         status: status as OrderStatus,
         paymentStatus: paymentStatus as PaymentStatus,
