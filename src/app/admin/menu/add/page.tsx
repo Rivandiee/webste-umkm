@@ -1,7 +1,13 @@
+// File: src/app/admin/menu/add/page.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+
+interface Category {
+  id: string;
+  name: string;
+}
 
 export default function AddMenuPage() {
   const router = useRouter();
@@ -9,16 +15,74 @@ export default function AddMenuPage() {
   const [form, setForm] = useState({
     name: "",
     price: "",
-    category: "",
+    categoryId: "",
     image: "",
   });
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Ambil daftar kategori untuk dropdown
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch("/api/category");
+        const data = await res.json();
+        setCategories(data);
+      } catch (err) {
+        console.error("Gagal memuat kategori:", err);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    alert("Menu berhasil ditambahkan!");
+    setIsLoading(true);
+    setError(null);
 
-    // Redirect kembali ke halaman menu
-    router.push("/admin/menu");
+    const numericPrice = parseInt(form.price);
+
+    // --- VALIDASI KUAT DI FRONTEND ---
+    if (isNaN(numericPrice) || numericPrice <= 0) {
+        setError("Harga harus berupa angka yang valid dan positif.");
+        setIsLoading(false);
+        return;
+    }
+    if (!form.name.trim() || !form.categoryId) {
+        setError("Nama menu dan kategori wajib diisi.");
+        setIsLoading(false);
+        return;
+    }
+    // --- AKHIR VALIDASI KUAT ---
+
+    const payload = {
+      ...form,
+      price: numericPrice, // Menggunakan integer yang sudah divalidasi
+    };
+
+    try {
+      const response = await fetch("/api/menu", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      
+      if (!response.ok) {
+        // Menangkap pesan error spesifik dari backend (jika ada)
+        const errorData = await response.json().catch(() => ({ message: "Gagal menambahkan menu." }));
+        throw new Error(errorData.message || "Gagal menambahkan menu. Terjadi kesalahan pada server.");
+      }
+
+      alert("Menu berhasil ditambahkan!");
+      router.push("/admin/menu");
+      
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const setValue = (key: string, value: string) => {
@@ -30,33 +94,40 @@ export default function AddMenuPage() {
       <h1 className="text-2xl font-bold mb-4">Tambah Menu</h1>
 
       <form onSubmit={handleSubmit} className="space-y-4 bg-white p-6 rounded-lg shadow-md">
-
+        {error && (
+            <p className="text-red-600 bg-red-100 p-3 rounded-lg border border-red-200">
+                Error: {error}
+            </p>
+        )}
+        
         <input
           type="text"
           placeholder="Nama Menu"
           className="w-full border p-3 rounded"
           value={form.name}
           onChange={(e) => setValue("name", e.target.value)}
+          disabled={isLoading}
         />
 
         <input
           type="number"
-          placeholder="Harga"
+          placeholder="Harga (misal: 25000)"
           className="w-full border p-3 rounded"
           value={form.price}
           onChange={(e) => setValue("price", e.target.value)}
+          disabled={isLoading}
         />
 
         <select
           className="w-full border p-3 rounded"
-          value={form.category}
-          onChange={(e) => setValue("category", e.target.value)}
+          value={form.categoryId}
+          onChange={(e) => setValue("categoryId", e.target.value)}
+          disabled={isLoading}
         >
           <option value="">-- Pilih Kategori --</option>
-          <option value="makanan">Makanan</option>
-          <option value="minuman">Minuman</option>
-          <option value="snack">Snack</option>
-          <option value="dessert">Dessert</option>
+          {categories.map(cat => (
+            <option key={cat.id} value={cat.id}>{cat.name}</option>
+          ))}
         </select>
 
         <input
@@ -65,13 +136,15 @@ export default function AddMenuPage() {
           className="w-full border p-3 rounded"
           value={form.image}
           onChange={(e) => setValue("image", e.target.value)}
+          disabled={isLoading}
         />
 
         <button
           type="submit"
-          className="bg-green-600 text-white w-full py-3 rounded-lg"
+          className="bg-green-600 text-white w-full py-3 rounded-lg disabled:bg-green-400 transition"
+          disabled={isLoading}
         >
-          Simpan Menu
+          {isLoading ? "Menyimpan..." : "Simpan Menu"}
         </button>
       </form>
     </div>

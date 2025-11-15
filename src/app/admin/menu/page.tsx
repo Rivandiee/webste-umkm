@@ -1,20 +1,59 @@
+// File: src/app/admin/menu/page.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 
-export default function AdminMenuPage() {
-  const [menu, setMenu] = useState([
-    { id: 1, name: "Nasi Goreng", price: 25000, category: "makanan" },
-    { id: 2, name: "Es Teh Manis", price: 5000, category: "minuman" },
-    { id: 3, name: "Mie Ayam", price: 20000, category: "makanan" },
-  ]);
+interface MenuItem {
+  id: string; // Ubah ke string untuk UUID
+  name: string;
+  price: number;
+  category: { name: string }; // Asumsikan object Category yang sudah direlasikan
+}
 
-  const handleDelete = (id: number) => {
-    if (confirm("Yakin ingin menghapus menu ini?")) {
-      setMenu(menu.filter((item) => item.id !== id));
+export default function AdminMenuPage() {
+  const [menu, setMenu] = useState<MenuItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const fetchMenu = async () => {
+    try {
+      const response = await fetch("/api/menu"); // GET /api/menu
+      const data = await response.json();
+      setMenu(data);
+    } catch (error) {
+      console.error("Gagal mengambil data menu:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchMenu();
+  }, []);
+
+  const handleDelete = async (id: string) => {
+    if (confirm("Yakin ingin menghapus menu ini?")) {
+      try {
+        const response = await fetch(`/api/menu?id=${id}`, {
+          method: "DELETE", // DELETE /api/menu?id=...
+        });
+
+        if (!response.ok) {
+          throw new Error("Gagal menghapus menu.");
+        }
+
+        // Perbarui state lokal dengan memfilter item yang dihapus
+        setMenu(menu.filter((item) => item.id !== id));
+        alert("Menu berhasil dihapus!");
+      } catch (e: any) {
+        alert(e.message);
+      }
+    }
+  };
+
+  if (isLoading) {
+    return <div className="p-6">Memuat Daftar Menu...</div>;
+  }
 
   return (
     <div className="p-6">
@@ -44,7 +83,7 @@ export default function AdminMenuPage() {
             <tr key={item.id}>
               <td className="p-3 border">{item.name}</td>
               <td className="p-3 border">Rp {item.price.toLocaleString()}</td>
-              <td className="p-3 border">{item.category}</td>
+              <td className="p-3 border">{item.category?.name || 'N/A'}</td>
 
               <td className="p-3 border flex gap-2">
                 <Link

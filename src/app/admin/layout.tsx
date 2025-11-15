@@ -1,3 +1,6 @@
+/*
+File: rivandiee/webste-umkm/webste-umkm-ac2ee62ddab7edd70fdcf9cdc1b17191f3ac7645/src/app/admin/layout.tsx
+*/
 "use client";
 
 import Link from "next/link";
@@ -26,7 +29,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     {
       name: "Kategori",
       icon: <Layers size={18} />,
-      href: "/admin/catagory",
+      href: "/admin/category", // PERBAIKAN: Mengubah "/admin/catagory" menjadi "/admin/category"
     },
     {
       name: "Pesanan",

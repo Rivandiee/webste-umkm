@@ -1,43 +1,50 @@
+// File: src/app/admin/order/page.tsx
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 
+interface Order {
+  id: string; // Ubah ke string/UUID
+  name: string;
+  total: number;
+  status: 'PENDING' | 'PREPARING' | 'DONE'; // Menggunakan ENUM dari Prisma
+  time: string; // Atau DateTime object
+}
+
 export default function AdminOrderPage() {
-  const [orders, setOrders] = useState([
-    {
-      id: 101,
-      name: "Budi Santoso",
-      total: 55000,
-      status: "pending",
-      time: "10:24 AM",
-    },
-    {
-      id: 102,
-      name: "Siti Rahma",
-      total: 76000,
-      status: "diproses",
-      time: "11:10 AM",
-    },
-    {
-      id: 103,
-      name: "Agus Setiawan",
-      total: 32000,
-      status: "selesai",
-      time: "12:45 PM",
-    },
-  ]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const statusColor = {
-    pending: "bg-yellow-500",
-    diproses: "bg-blue-500",
-    selesai: "bg-green-600",
+    PENDING: "bg-yellow-500",
+    PREPARING: "bg-blue-500",
+    DONE: "bg-green-600",
   };
+  
+  const fetchOrders = async () => {
+    try {
+      const response = await fetch("/api/order/list"); // GET /api/order/list
+      const data = await response.json();
+      setOrders(data);
+    } catch (error) {
+      console.error("Gagal mengambil data pesanan:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  if (isLoading) {
+    return <div className="p-6">Memuat Daftar Pesanan...</div>;
+  }
 
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-6">Daftar Pesanan</h1>
 
-      {/* Grid Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {orders.map((order) => (
           <Link
@@ -46,7 +53,7 @@ export default function AdminOrderPage() {
             className="bg-white shadow-md rounded-2xl p-5 border hover:shadow-xl transition block"
           >
             <div className="flex justify-between items-start mb-3">
-              <h2 className="font-bold text-lg">Pesanan #{order.id}</h2>
+              <h2 className="font-bold text-lg">Pesanan #{order.id.substring(0, 8)}</h2>
               <span
                 className={`text-xs text-white px-3 py-1 rounded-full ${statusColor[order.status]}`}
               >
@@ -62,6 +69,7 @@ export default function AdminOrderPage() {
             </p>
           </Link>
         ))}
+        {orders.length === 0 && <p className="text-gray-500">Tidak ada pesanan.</p>}
       </div>
     </div>
   );

@@ -1,264 +1,112 @@
+// File: src/app/user/menu/page.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "../../../components/Navbar";
 import MenuCard from "../../../components/MenuCard";
 import SectionTitle from "../../../components/SectionTitle";
 import Footer from "../../../components/Footer";
 
+// Definisi interface
+interface MenuItem {
+  id: string;
+  name: string;
+  price: number;
+  image: string | null;
+  categoryId: string;
+  category: {
+    id: string;
+    name: string;
+  };
+}
 
-const menu = [
-  // MAKANAN
-  {
-    id: 1,
-    name: "Nasi Goreng Special",
-    price: 25000,
-    category: "makanan",
-    image: "https://i.ibb.co/8dJ6Rt2/nasi-goreng.jpg"
-  },
-  {
-    id: 2,
-    name: "Ayam Geprek Crispy",
-    price: 22000,
-    category: "makanan",
-    image: "https://i.ibb.co/3cGkF6x/geprek.jpg"
-  },
-  {
-    id: 3,
-    name: "Soto Ayam Lamongan",
-    price: 27000,
-    category: "makanan",
-    image: "https://i.ibb.co/n8yKy5d/soto.jpg"
-  },
-  {
-    id: 4,
-    name: "Bakso Urat Jumbo",
-    price: 28000,
-    category: "makanan",
-    image: "https://i.ibb.co/mJ7t6G0/bakso.jpg"
-  },
-  {
-    id: 5,
-    name: "Mie Ayam Bakso Komplit",
-    price: 23000,
-    category: "makanan",
-    image: "https://i.ibb.co/f49sJcw/mie-ayam.jpg"
-  },
-  {
-    id: 6,
-    name: "Burger Beef Premium",
-    price: 32000,
-    category: "makanan",
-    image: "https://i.ibb.co/Z1GJh3k/burger.jpg"
-  },
-  {
-    id: 7,
-    name: "Pizza Mini Cheese",
-    price: 28000,
-    category: "makanan",
-    image: "https://i.ibb.co/SNy8nZf/pizza.jpg"
-  },
+interface Category {
+    id: string;
+    name: string;
+}
 
-  // MINUMAN
-  {
-    id: 8,
-    name: "Es Teh Manis",
-    price: 5000,
-    category: "minuman",
-    image: "https://i.ibb.co/3d7K2qz/esteh.jpg"
-  },
-  {
-    id: 9,
-    name: "Lemon Tea",
-    price: 8000,
-    category: "minuman",
-    image: "https://i.ibb.co/QvLKyVv/lemontea.jpg"
-  },
-  {
-    id: 10,
-    name: "Jus Alpukat",
-    price: 15000,
-    category: "minuman",
-    image: "https://i.ibb.co/qjKkS2s/jus-alpukat.jpg"
-  },
-  {
-    id: 11,
-    name: "Jus Mangga",
-    price: 13000,
-    category: "minuman",
-    image: "https://i.ibb.co/TbX8XhZ/jus-mangga.jpg"
-  },
-  {
-    id: 12,
-    name: "Kopi Susu Gula Aren",
-    price: 18000,
-    category: "minuman",
-    image: "https://i.ibb.co/YCFqY3r/kopi-gula-aren.jpg"
-  },
-  {
-    id: 13,
-    name: "Matcha Latte",
-    price: 19000,
-    category: "minuman",
-    image: "https://i.ibb.co/T0Jg9nG/matcha.jpg"
-  },
-  {
-    id: 14,
-    name: "Milkshake Coklat",
-    price: 16000,
-    category: "minuman",
-    image: "https://i.ibb.co/J3Z9Q8M/milkshake.jpg"
-  },
+interface CartItem {
+    id: string;
+    name: string;
+    price: number;
+    qty: number;
+    note?: string; 
+}
 
-  // DESSERT
-  {
-    id: 15,
-    name: "Pancake Strawberry",
-    price: 20000,
-    category: "dessert",
-    image: "https://i.ibb.co/2WkhJdR/pancake.jpg"
-  },
-  {
-    id: 16,
-    name: "Brownies Coklat Lumer",
-    price: 18000,
-    category: "dessert",
-    image: "https://i.ibb.co/YQmMj4C/brownies.jpg"
-  },
-  {
-    id: 17,
-    name: "Ice Cream Vanilla",
-    price: 10000,
-    category: "dessert",
-    image: "https://i.ibb.co/CJS70xB/icecream.jpg"
-  },
-  {
-    id: 18,
-    name: "Manggo Sticky Rice",
-    price: 22000,
-    category: "dessert",
-    image: "https://i.ibb.co/KWsVm7Q/mango-sticky-rice.jpg"
-  },
-
-  // SNACK
-  {
-    id: 19,
-    name: "Kentang Goreng",
-    price: 10000,
-    category: "snack",
-    image: "https://i.ibb.co/R6zw29J/kentang.jpg"
-  },
-  {
-    id: 20,
-    name: "Sosis Bakar",
-    price: 12000,
-    category: "snack",
-    image: "https://i.ibb.co/7VSStNv/sosis.jpg"
-  },
-  {
-    id: 21,
-    name: "Tahu Crispy",
-    price: 8000,
-    category: "snack",
-    image: "https://i.ibb.co/FBY0w5G/tahu-crispy.jpg"
-  },
-  {
-    id: 22,
-    name: "Dimsum Ayam",
-    price: 15000,
-    category: "snack",
-    image: "https://i.ibb.co/kXvBymG/dimsum.jpg"
-  },
-  {
-    id: 23,
-    name: "Onion Rings",
-    price: 12000,
-    category: "snack",
-    image: "https://i.ibb.co/nQHh0Cs/onion-rings.jpg"
-  },
-
-  // EXTRA
-  {
-    id: 24,
-    name: "Ayam Bakar Madu",
-    price: 30000,
-    category: "makanan",
-    image: "https://i.ibb.co/Mk5jzDw/ayam-bakar.jpg"
-  },
-  {
-    id: 25,
-    name: "Ramen Pedas Level 3",
-    price: 27000,
-    category: "makanan",
-    image: "https://i.ibb.co/5hQzBgj/ramen.jpg"
-  },
-  {
-    id: 26,
-    name: "Kopi Hitam Tubruk",
-    price: 10000,
-    category: "minuman",
-    image: "https://i.ibb.co/znF2nKT/kopi-hitam.jpg"
-  },
-  {
-    id: 27,
-    name: "Pudding Caramel",
-    price: 12000,
-    category: "dessert",
-    image: "https://i.ibb.co/0KjDdyT/pudding.jpg"
-  },
-  {
-    id: 28,
-    name: "Churros Mini",
-    price: 15000,
-    category: "snack",
-    image: "https://i.ibb.co/sH3yZJx/churros.jpg"
-  },
-  {
-    id: 29,
-    name: "Cappuccino Panas",
-    price: 15000,
-    category: "minuman",
-    image: "https://i.ibb.co/9Wy2pKL/capuccino.jpg"
-  },
-  {
-    id: 30,
-    name: "Nasi Ayam Teriyaki",
-    price: 28000,
-    category: "makanan",
-    image: "https://i.ibb.co/DMfqdbW/teriyaki.jpg"
-  }
-];
-
-
-const categories = [
-  { id: "all", label: "Semua" },
-  { id: "makanan", label: "Makanan" },
-  { id: "minuman", label: "Minuman" },
-  { id: "snack", label: "Snack" },
-  { id: "manis", label: "Manis" },
-  { id: "pedas", label: "Pedas" },
-];
 
 export default function MenuPage() {
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [categories, setCategories] = useState<{ id: string; label: string; }[]>([]);
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // --- Cart State Placeholder (In-memory for demo) ---
+  const [cart, setCart] = useState<CartItem[]>([]);
+  
+  const addToCart = (item: MenuItem) => {
+    setCart((prevCart) => {
+      const existingItem = prevCart.find((i) => i.id === item.id);
+      if (existingItem) {
+        alert(`Jumlah ${item.name} diperbarui!`);
+        return prevCart.map((i) =>
+          i.id === item.id ? { ...i, qty: i.qty + 1 } : i
+        );
+      }
+      alert(`${item.name} ditambahkan ke keranjang!`);
+      return [...prevCart, { id: item.id, name: item.name, price: item.price, qty: 1, note: "" }];
+    });
+  };
+  
+  // Fetch Menu Items and Categories
+  useEffect(() => {
+    const fetchData = async () => {
+        try {
+            // Fetch Menu
+            const menuRes = await fetch("/api/menu"); // GET /api/menu
+            const menuData: MenuItem[] = await menuRes.json();
+            setMenuItems(menuData);
+
+            // Fetch Categories for Filter
+            const categoryRes = await fetch("/api/category"); // GET /api/category
+            const categoryData: Category[] = await categoryRes.json();
+            
+            const formattedCategories = categoryData.map(cat => ({ 
+                id: cat.id, 
+                label: cat.name 
+            }));
+            
+            setCategories([{ id: "all", label: "Semua" }, ...formattedCategories]);
+
+        } catch (error) {
+            console.error("Gagal mengambil data menu/kategori:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    fetchData();
+  }, []);
 
   // Filter kategori + pencarian
-  const filteredMenu = menu.filter((item) => {
-    const matchesCategory = filter === "all" || item.category === filter;
+  const filteredMenu = menuItems.filter((item) => {
+    // Membandingkan dengan categoryId dari item, bukan field 'category'
+    const matchesCategory = filter === "all" || item.categoryId === filter; 
     const matchesSearch = item.name.toLowerCase().includes(search.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
+
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
-      <Navbar />
+      <Navbar cartCount={cart.reduce((sum, item) => sum + item.qty, 0)} />
 
-      {/* HERO IMAGE */}
+      {/* HERO IMAGE (tetap statis) */}
       <div className="w-full h-48 md:h-64 overflow-hidden rounded-b-3xl shadow-md">
         <img
           src="/images/restaurant-banner.jpg"
           className="w-full h-full object-cover"
+          alt="Restaurant Banner"
         />
       </div>
 
@@ -279,7 +127,7 @@ export default function MenuPage() {
           />
         </div>
 
-        {/* 🧭 CATEGORY SLIDER (HORIZONTAL SCROLL) */}
+        {/* 🧭 CATEGORY SLIDER */}
         <div className="mt-5 flex gap-3 overflow-x-auto no-scrollbar py-2">
           {categories.map((cat) => (
             <button
@@ -300,16 +148,21 @@ export default function MenuPage() {
           ))}
         </div>
 
-        {/* MENU GRID */}
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
-        {filteredMenu.map((item) => (
-          <MenuCard key={item.id} item={item} />
-        ))}
-      </div>
+        {isLoading ? (
+            <div className="p-6 text-center text-gray-500">Memuat menu...</div>
+        ) : filteredMenu.length === 0 ? (
+            <div className="p-6 text-center text-gray-500">Menu tidak ditemukan.</div>
+        ) : (
+            // MENU GRID
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 mt-5">
+            {filteredMenu.map((item) => (
+              <MenuCard key={item.id} item={item} addToCart={addToCart} />
+            ))}
+            </div>
+        )}
       </div>
 
       <Footer />
-
     </div>
   );
 }

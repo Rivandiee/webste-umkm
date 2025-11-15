@@ -1,3 +1,5 @@
+// File: rivandiee/webste-umkm/webste-umkm-ac2ee62ddab7edd70fdcf9cdc1b17191f3ac7645/prisma/schema.prisma (UPDATED)
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -5,6 +7,15 @@ datasource db {
 
 generator client {
   provider = "prisma-client-js"
+}
+
+// ==========================================================
+// ⚠️ MODEL BARU UNTUK MENGELOLA KATEGORI SECARA TERPISAH
+// ==========================================================
+model Category {
+  id    String @id @default(uuid())
+  name  String @unique
+  menus Menu[] // Relasi one-to-many ke model Menu
 }
 
 model Table {
@@ -15,12 +26,14 @@ model Table {
 }
 
 model Menu {
-  id       String        @id @default(uuid())
-  name     String
-  price    Int
-  image    String?
-  category String?
-  items    OrderItem[]
+  id          String    @id @default(uuid())
+  name        String
+  price       Int
+  image       String?
+  // BIDANG LAMA 'category String?' DIHAPUS DAN DIGANTI DENGAN RELASI KUAT:
+  category    Category @relation(fields: [categoryId], references: [id])
+  categoryId  String
+  items       OrderItem[]
 }
 
 model Order {
